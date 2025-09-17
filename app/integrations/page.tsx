@@ -1,130 +1,60 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
-  Settings,
   Zap,
+  Settings,
+  Mail,
+  FileSpreadsheet,
   CheckCircle,
   AlertCircle,
-  ExternalLink,
-  MessageSquare,
-  FileSpreadsheet,
-  Mail,
-  Webhook,
-  Key,
-  Copy,
-  RefreshCw
+  ArrowLeft,
+  ExternalLink
 } from 'lucide-react'
 import Link from 'next/link'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { useAuth } from '@/contexts/AuthContext'
+import { useState } from 'react'
 
-interface Integration {
-  id: string
-  name: string
-  description: string
-  icon: React.ComponentType<any>
-  connected: boolean
-  status: 'active' | 'inactive' | 'error'
-  lastSync?: string
-  config?: any
-}
+function IntegrationsContent() {
+  const { user, signOut } = useAuth()
+  const [emailEnabled, setEmailEnabled] = useState(true)
+  const [sheetsEnabled, setSheetsEnabled] = useState(false)
+  const [notificationEmail, setNotificationEmail] = useState(user?.email || '')
 
-export default function IntegrationsPage() {
-  const [integrations, setIntegrations] = useState<Integration[]>([
-    {
-      id: 'google-sheets',
-      name: 'Google Sheets',
-      description: 'Automatically export processed PO data to Google Sheets',
-      icon: FileSpreadsheet,
-      connected: true,
-      status: 'active',
-      lastSync: '2024-09-16T10:30:00Z',
-      config: {
-        spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-        sheetName: 'Purchase Orders'
-      }
-    },
-    {
-      id: 'whatsapp',
-      name: 'WhatsApp Business',
-      description: 'Send PO processing notifications via WhatsApp',
-      icon: MessageSquare,
-      connected: false,
-      status: 'inactive'
-    },
+  const integrations = [
     {
       id: 'email',
       name: 'Email Notifications',
-      description: 'Receive email alerts for PO processing updates',
+      description: 'Get notified when your POs are processed',
       icon: Mail,
-      connected: true,
+      enabled: emailEnabled,
       status: 'active',
-      config: {
-        email: 'user@example.com',
-        notifications: ['processing_complete', 'processing_failed']
-      }
+      category: 'notifications',
+      setup: true
     },
     {
-      id: 'webhook',
-      name: 'Webhooks',
-      description: 'Send PO data to your custom endpoints',
-      icon: Webhook,
-      connected: false,
-      status: 'inactive'
+      id: 'sheets',
+      name: 'Google Sheets',
+      description: 'Export processed PO data directly to spreadsheets',
+      icon: FileSpreadsheet,
+      enabled: sheetsEnabled,
+      status: 'available',
+      category: 'export',
+      setup: false
     }
-  ])
+  ]
 
-  const [apiKey] = useState('tfai_sk_1234567890abcdef')
-  const [showApiKey, setShowApiKey] = useState(false)
-
-  const toggleIntegration = (id: string) => {
-    setIntegrations(prev => prev.map(integration => 
-      integration.id === id 
-        ? { 
-            ...integration, 
-            connected: !integration.connected,
-            status: !integration.connected ? 'active' : 'inactive'
-          }
-        : integration
-    ))
-  }
-
-  const copyApiKey = () => {
-    navigator.clipboard.writeText(apiKey)
-    // In a real app, you'd show a toast notification
-    alert('API key copied to clipboard!')
-  }
-
-  const regenerateApiKey = () => {
-    // In a real app, this would call an API to regenerate the key
-    alert('API key regenerated! (This would call the backend API)')
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800'
-      case 'error':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+  const handleToggle = (id: string, enabled: boolean) => {
+    if (id === 'email') {
+      setEmailEnabled(enabled)
+    } else if (id === 'sheets') {
+      setSheetsEnabled(enabled)
     }
   }
 
@@ -135,13 +65,19 @@ export default function IntegrationsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <Button variant="ghost" size="sm" asChild className="mr-4">
+                <Link href="/dashboard">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Link>
+              </Button>
+              <div className="flex items-center">
                 <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-              </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-semibold text-gray-900">TradeFlow AI</h1>
+                <div className="ml-4">
+                  <h1 className="text-xl font-semibold text-gray-900">TradeFlow AI</h1>
+                </div>
               </div>
             </div>
             
@@ -150,14 +86,20 @@ export default function IntegrationsPage() {
               <a href="/upload" className="text-gray-500 hover:text-gray-700">Upload PO</a>
               <a href="/integrations" className="text-blue-600 font-medium">Integrations</a>
               <a href="/billing" className="text-gray-500 hover:text-gray-700">Billing</a>
+              <a href="/settings" className="text-gray-500 hover:text-gray-700">Settings</a>
             </nav>
 
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
+              <span className="text-sm text-gray-600">
+                Welcome, {user?.user_metadata?.name || user?.email}
+              </span>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/login">Sign Out</Link>
+                <Link href="/settings">
+                  <Settings className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                Sign Out
               </Button>
             </div>
           </div>
@@ -165,243 +107,189 @@ export default function IntegrationsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
           <p className="mt-2 text-gray-600">
-            Connect TradeFlow AI with your favorite tools and services
+            Connect TradeFlow AI with your favorite tools to streamline your workflow.
           </p>
         </div>
 
-        {/* API Key Section */}
+        {/* Active Integrations Summary */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Key className="h-5 w-5" />
-              <span>API Access</span>
-            </CardTitle>
+            <CardTitle>Integration Status</CardTitle>
             <CardDescription>
-              Use your API key to integrate TradeFlow AI with custom applications
+              Overview of your connected services
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="api-key">Your API Key</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Input
-                    id="api-key"
-                    type={showApiKey ? 'text' : 'password'}
-                    value={apiKey}
-                    readOnly
-                    className="font-mono"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                  >
-                    {showApiKey ? 'Hide' : 'Show'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyApiKey}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={regenerateApiKey}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium">
+                    {integrations.filter(i => i.enabled).length} Active
+                  </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  Keep your API key secure. Don't share it in publicly accessible areas.
-                </p>
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-600">
+                    {integrations.filter(i => !i.enabled).length} Available
+                  </span>
+                </div>
               </div>
-
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  View our{' '}
-                  <a href="/api-docs" className="font-medium text-blue-600 hover:text-blue-500">
-                    API documentation
-                  </a>{' '}
-                  to learn how to integrate with TradeFlow AI.
-                </AlertDescription>
-              </Alert>
+              <Badge variant="outline" className="text-green-600 border-green-200">
+                All Systems Operational
+              </Badge>
             </div>
           </CardContent>
         </Card>
 
         {/* Available Integrations */}
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {integrations.map((integration) => (
-            <Card key={integration.id}>
+            <Card key={integration.id} className="relative">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <integration.icon className="h-5 w-5 text-gray-600" />
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <integration.icon className="h-6 w-6 text-gray-700" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{integration.name}</CardTitle>
                       <CardDescription>{integration.description}</CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge className={getStatusColor(integration.status)}>
-                      {getStatusIcon(integration.status)}
-                      <span className="ml-1 capitalize">{integration.status}</span>
-                    </Badge>
-                    <Switch
-                      checked={integration.connected}
-                      onCheckedChange={() => toggleIntegration(integration.id)}
-                    />
-                  </div>
+                  <Switch
+                    checked={integration.enabled}
+                    onCheckedChange={(checked) => handleToggle(integration.id, checked)}
+                  />
                 </div>
               </CardHeader>
-
-              {integration.connected && (
-                <CardContent>
-                  {integration.id === 'google-sheets' && integration.config && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="spreadsheet-id">Spreadsheet ID</Label>
-                          <Input
-                            id="spreadsheet-id"
-                            value={integration.config.spreadsheetId}
-                            readOnly
-                            className="font-mono text-sm"
-                          />
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Status</span>
+                    <Badge 
+                      variant={integration.enabled ? "default" : "secondary"}
+                      className={integration.enabled ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
+                    >
+                      {integration.enabled ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                  
+                  {integration.enabled && integration.setup && (
+                    <div className="pt-4 border-t">
+                      {integration.id === 'email' && (
+                        <div className="space-y-3">
+                          <div>
+                            <Label htmlFor="notification-email" className="text-sm font-medium">
+                              Notification Email
+                            </Label>
+                            <Input
+                              id="notification-email"
+                              type="email"
+                              value={notificationEmail}
+                              onChange={(e) => setNotificationEmail(e.target.value)}
+                              placeholder="Enter email address"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="notify-completion"
+                              defaultChecked
+                              className="rounded border-gray-300"
+                            />
+                            <Label htmlFor="notify-completion" className="text-sm">
+                              Notify on PO completion
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="notify-errors"
+                              defaultChecked
+                              className="rounded border-gray-300"
+                            />
+                            <Label htmlFor="notify-errors" className="text-sm">
+                              Notify on processing errors
+                            </Label>
+                          </div>
                         </div>
-                        <div>
-                          <Label htmlFor="sheet-name">Sheet Name</Label>
-                          <Input
-                            id="sheet-name"
-                            value={integration.config.sheetName}
-                            readOnly
-                          />
-                        </div>
-                      </div>
-                      {integration.lastSync && (
-                        <p className="text-sm text-gray-500">
-                          Last synced: {new Date(integration.lastSync).toLocaleString()}
-                        </p>
                       )}
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          Configure
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="h-4 w-4 mr-1" />
-                          Open Sheet
-                        </Button>
-                      </div>
                     </div>
                   )}
 
-                  {integration.id === 'email' && integration.config && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="notification-email">Notification Email</Label>
-                        <Input
-                          id="notification-email"
-                          value={integration.config.email}
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <Label>Notification Types</Label>
-                        <div className="mt-2 space-y-2">
-                          {integration.config.notifications.map((type: string) => (
-                            <div key={type} className="flex items-center space-x-2">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span className="text-sm capitalize">{type.replace('_', ' ')}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Configure Notifications
+                  {integration.enabled && !integration.setup && (
+                    <div className="pt-4 border-t">
+                      <Button className="w-full" variant="outline">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Configure {integration.name}
                       </Button>
                     </div>
                   )}
-
-                  {integration.id === 'whatsapp' && (
-                    <div className="space-y-4">
-                      <Alert>
-                        <MessageSquare className="h-4 w-4" />
-                        <AlertDescription>
-                          Connect your WhatsApp Business account to receive PO processing notifications.
-                        </AlertDescription>
-                      </Alert>
-                      <Button>Connect WhatsApp Business</Button>
-                    </div>
-                  )}
-
-                  {integration.id === 'webhook' && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="webhook-url">Webhook URL</Label>
-                        <Input
-                          id="webhook-url"
-                          placeholder="https://your-domain.com/webhook"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="webhook-secret">Webhook Secret (Optional)</Label>
-                        <Input
-                          id="webhook-secret"
-                          type="password"
-                          placeholder="Enter a secret for webhook verification"
-                        />
-                      </div>
-                      <Alert>
-                        <Webhook className="h-4 w-4" />
-                        <AlertDescription>
-                          Webhooks will be sent as POST requests with PO data in JSON format.
-                        </AlertDescription>
-                      </Alert>
-                      <Button>Save Webhook Configuration</Button>
-                    </div>
-                  )}
-                </CardContent>
-              )}
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Coming Soon */}
-        <Card className="mt-8">
+        {/* Help Section */}
+        <Card>
           <CardHeader>
-            <CardTitle>Coming Soon</CardTitle>
+            <CardTitle>Need Help?</CardTitle>
             <CardDescription>
-              More integrations are on the way
+              Get assistance with setting up your integrations
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { name: 'Slack', icon: '💬' },
-                { name: 'Zoho Books', icon: '📊' },
-                { name: 'QuickBooks', icon: '💰' },
-                { name: 'Zapier', icon: '⚡' }
-              ].map((upcoming) => (
-                <div key={upcoming.name} className="text-center p-4 border border-gray-200 rounded-lg">
-                  <div className="text-2xl mb-2">{upcoming.icon}</div>
-                  <p className="font-medium text-gray-900">{upcoming.name}</p>
-                  <Badge variant="outline" className="mt-1">Coming Soon</Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-2">📧 Email Notifications</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Automatically receive updates when your purchase orders are processed.
+                </p>
+                <Button variant="outline" size="sm">
+                  Learn More
+                </Button>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-2">📊 Google Sheets Export</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Export your processed PO data directly to Google Sheets for analysis.
+                </p>
+                <Button variant="outline" size="sm">
+                  Setup Guide
+                </Button>
+              </div>
+            </div>
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900">More Integrations Coming Soon</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    We're working on additional integrations based on user feedback. 
+                    Contact us if you have specific integration requests.
+                  </p>
                 </div>
-              ))}
+              </div>
             </div>
           </CardContent>
         </Card>
       </main>
     </div>
+  )
+}
+
+export default function IntegrationsPage() {
+  return (
+    <ProtectedRoute>
+      <IntegrationsContent />
+    </ProtectedRoute>
   )
 }

@@ -1,115 +1,107 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { 
-  CreditCard, 
-  CheckCircle, 
-  Clock,
-  Download,
   Zap,
   Settings,
-  TrendingUp,
-  Calendar
+  CreditCard,
+  Download,
+  CheckCircle,
+  ArrowLeft,
+  Star,
+  Users,
+  Building
 } from 'lucide-react'
 import Link from 'next/link'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { useAuth } from '@/contexts/AuthContext'
 
-const pricingPlans = [
-  {
-    name: 'Starter',
-    price: 0,
-    credits: 10,
-    features: [
-      '10 PO processing credits',
-      'Basic file upload (PDF, EML, TXT)',
-      'Email notifications',
-      'Basic analytics',
-      'Community support'
-    ],
-    popular: false,
-    current: true
-  },
-  {
-    name: 'Professional',
-    price: 29,
-    credits: 100,
-    features: [
-      '100 PO processing credits',
-      'All file formats supported',
-      'WhatsApp & Email notifications',
-      'Advanced analytics & reports',
-      'Google Sheets integration',
-      'Priority support',
-      'API access'
-    ],
-    popular: true,
-    current: false
-  },
-  {
-    name: 'Enterprise',
-    price: 99,
-    credits: 500,
-    features: [
-      '500 PO processing credits',
-      'All Professional features',
-      'Zoho Books integration',
-      'Custom branding',
-      'Dedicated account manager',
-      'SLA guarantee',
-      'Custom integrations'
-    ],
-    popular: false,
-    current: false
-  }
-]
+function BillingContent() {
+  const { user, signOut } = useAuth()
 
-const mockUsageHistory = [
-  {
-    id: '1',
-    date: '2024-09-16',
-    description: 'PO Processing - PO-2024-002',
-    credits: -1,
-    balance: 8
-  },
-  {
-    id: '2',
-    date: '2024-09-15',
-    description: 'PO Processing - PO-2024-001',
-    credits: -1,
-    balance: 9
-  },
-  {
-    id: '3',
-    date: '2024-09-01',
-    description: 'Monthly credit allocation',
-    credits: +10,
-    balance: 10
-  }
-]
+  const plans = [
+    {
+      name: "Starter",
+      price: "₹299",
+      period: "/month",
+      credits: 10,
+      description: "Perfect for small businesses getting started",
+      features: [
+        "10 PO processing credits per month",
+        "Email notifications",
+        "Google Sheets export",
+        "Basic support",
+        "Data retention: 6 months"
+      ],
+      popular: false,
+      current: true
+    },
+    {
+      name: "Professional",
+      price: "₹999",
+      period: "/month",
+      credits: 100,
+      description: "Ideal for growing businesses with regular PO volume",
+      features: [
+        "100 PO processing credits per month",
+        "Priority email notifications",
+        "Google Sheets export",
+        "Priority support",
+        "Data retention: 2 years",
+        "Advanced analytics"
+      ],
+      popular: true,
+      current: false
+    },
+    {
+      name: "Business",
+      price: "₹2,499",
+      period: "/month",
+      credits: 500,
+      description: "For established businesses with high PO volume",
+      features: [
+        "500 PO processing credits per month",
+        "Real-time notifications",
+        "Multiple export formats",
+        "Phone & email support",
+        "Data retention: 5 years",
+        "Advanced analytics",
+        "Custom reporting"
+      ],
+      popular: false,
+      current: false
+    }
+  ]
 
-const mockBillingHistory = [
-  {
-    id: '1',
-    date: '2024-09-01',
-    description: 'Starter Plan - September 2024',
-    amount: 0,
-    status: 'paid',
-    invoice: 'INV-2024-001'
-  }
-]
-
-export default function BillingPage() {
-  const [currentCredits] = useState(8)
-  const [totalCredits] = useState(10)
-  const [currentPlan] = useState('Starter')
-
-  const handleUpgrade = (planName: string) => {
-    // In a real app, this would integrate with Stripe
-    alert(`Upgrading to ${planName} plan... (This would integrate with Stripe)`)
-  }
+  const paymentHistory = [
+    {
+      id: "inv_001",
+      date: "2024-01-15",
+      amount: "₹299",
+      status: "paid",
+      plan: "Starter Plan",
+      period: "Jan 2024"
+    },
+    {
+      id: "inv_002",
+      date: "2023-12-15",
+      amount: "₹299",
+      status: "paid",
+      plan: "Starter Plan",
+      period: "Dec 2023"
+    },
+    {
+      id: "inv_003",
+      date: "2023-11-15",
+      amount: "₹299",
+      status: "paid",
+      plan: "Starter Plan",
+      period: "Nov 2023"
+    }
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -118,13 +110,19 @@ export default function BillingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <Button variant="ghost" size="sm" asChild className="mr-4">
+                <Link href="/dashboard">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Link>
+              </Button>
+              <div className="flex items-center">
                 <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-              </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-semibold text-gray-900">TradeFlow AI</h1>
+                <div className="ml-4">
+                  <h1 className="text-xl font-semibold text-gray-900">TradeFlow AI</h1>
+                </div>
               </div>
             </div>
             
@@ -133,14 +131,20 @@ export default function BillingPage() {
               <a href="/upload" className="text-gray-500 hover:text-gray-700">Upload PO</a>
               <a href="/integrations" className="text-gray-500 hover:text-gray-700">Integrations</a>
               <a href="/billing" className="text-blue-600 font-medium">Billing</a>
+              <a href="/settings" className="text-gray-500 hover:text-gray-700">Settings</a>
             </nav>
 
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
+              <span className="text-sm text-gray-600">
+                Welcome, {user?.user_metadata?.name || user?.email}
+              </span>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/login">Sign Out</Link>
+                <Link href="/settings">
+                  <Settings className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                Sign Out
               </Button>
             </div>
           </div>
@@ -148,112 +152,137 @@ export default function BillingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Billing & Usage</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Billing & Subscription</h1>
           <p className="mt-2 text-gray-600">
-            Manage your subscription and track your usage
+            Manage your subscription, view usage, and billing history.
           </p>
         </div>
 
         {/* Current Plan & Usage */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Current Plan
-                <Badge variant="secondary">{currentPlan}</Badge>
-              </CardTitle>
+              <CardTitle>Current Plan</CardTitle>
+              <CardDescription>
+                Your active subscription and usage details
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900 mb-2">$0/month</div>
-              <p className="text-gray-600 mb-4">Free tier with basic features</p>
-              <Button className="w-full">Upgrade Plan</Button>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">Starter Plan</h3>
+                  <p className="text-gray-600">₹299/month • 10 credits included</p>
+                </div>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  Active
+                </Badge>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Credits Used This Month</span>
+                    <span>2/10</span>
+                  </div>
+                  <Progress value={20} className="h-2" />
+                  <p className="text-xs text-gray-500 mt-1">8 credits remaining</p>
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">Next billing date</p>
+                      <p className="text-sm text-gray-600">February 15, 2024</p>
+                    </div>
+                    <Button variant="outline">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Update Payment
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Credits Usage</CardTitle>
-              <CardDescription>This month's processing credits</CardDescription>
+              <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl font-bold">{currentCredits}</span>
-                <span className="text-gray-500">/ {totalCredits}</span>
-              </div>
-              <Progress value={(currentCredits / totalCredits) * 100} className="mb-2" />
-              <p className="text-sm text-gray-600">
-                {totalCredits - currentCredits} credits used this month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Next Billing</CardTitle>
-              <CardDescription>Your next billing cycle</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2 mb-2">
-                <Calendar className="h-5 w-5 text-gray-400" />
-                <span className="font-medium">October 1, 2024</span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Credits will reset on your next billing date
-              </p>
+            <CardContent className="space-y-3">
+              <Button className="w-full">
+                <Zap className="h-4 w-4 mr-2" />
+                Upgrade Plan
+              </Button>
+              <Button variant="outline" className="w-full">
+                <Download className="h-4 w-4 mr-2" />
+                Download Invoice
+              </Button>
+              <Button variant="outline" className="w-full">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Payment Methods
+              </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Pricing Plans */}
+        {/* Available Plans */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Choose Your Plan</CardTitle>
+            <CardTitle>Available Plans</CardTitle>
             <CardDescription>
-              Upgrade or downgrade your plan anytime. Changes take effect immediately.
+              Choose the plan that best fits your business needs
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              {pricingPlans.map((plan) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {plans.map((plan, index) => (
                 <div
-                  key={plan.name}
-                  className={`relative border rounded-lg p-6 ${
-                    plan.current 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : plan.popular 
-                      ? 'border-purple-500 shadow-lg' 
-                      : 'border-gray-200'
-                  }`}
+                  key={index}
+                  className={`relative p-6 border rounded-lg ${
+                    plan.popular ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                  } ${plan.current ? 'ring-2 ring-green-500' : ''}`}
                 >
                   {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white">
-                      Most Popular
-                    </Badge>
-                  )}
-                  {plan.current && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white">
-                      Current Plan
-                    </Badge>
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-blue-600 text-white">
+                        <Star className="h-3 w-3 mr-1" />
+                        Most Popular
+                      </Badge>
+                    </div>
                   )}
                   
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
-                    <div className="mt-2">
-                      <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
-                      <span className="text-gray-600">/month</span>
+                  {plan.current && (
+                    <div className="absolute -top-3 right-4">
+                      <Badge className="bg-green-600 text-white">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Current Plan
+                      </Badge>
                     </div>
-                    <p className="text-gray-600 mt-1">
-                      {plan.credits} processing credits included
-                    </p>
+                  )}
+
+                  <div className="text-center mb-6">
+                    <div className="flex items-center justify-center mb-2">
+                      {plan.name === 'Starter' && <Users className="h-6 w-6 text-blue-600" />}
+                      {plan.name === 'Professional' && <Building className="h-6 w-6 text-purple-600" />}
+                      {plan.name === 'Business' && <Star className="h-6 w-6 text-orange-600" />}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+                    <div className="flex items-baseline justify-center">
+                      <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
+                      <span className="text-gray-600 ml-1">{plan.period}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{plan.credits} credits included</p>
                   </div>
 
                   <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start space-x-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700 text-sm">{feature}</span>
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-start">
+                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <span className="text-sm text-gray-700">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -262,7 +291,6 @@ export default function BillingPage() {
                     className="w-full" 
                     variant={plan.current ? "outline" : plan.popular ? "default" : "outline"}
                     disabled={plan.current}
-                    onClick={() => handleUpgrade(plan.name)}
                   >
                     {plan.current ? 'Current Plan' : `Upgrade to ${plan.name}`}
                   </Button>
@@ -272,101 +300,56 @@ export default function BillingPage() {
           </CardContent>
         </Card>
 
-        {/* Usage History & Billing History */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Usage History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5" />
-                <span>Usage History</span>
-              </CardTitle>
-              <CardDescription>
-                Track your credit usage over time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockUsageHistory.map((usage) => (
-                  <div key={usage.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                    <div>
-                      <p className="font-medium text-gray-900">{usage.description}</p>
-                      <p className="text-sm text-gray-500">{new Date(usage.date).toLocaleDateString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-medium ${usage.credits > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {usage.credits > 0 ? '+' : ''}{usage.credits}
-                      </p>
-                      <p className="text-sm text-gray-500">Balance: {usage.balance}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Billing History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CreditCard className="h-5 w-5" />
-                <span>Billing History</span>
-              </CardTitle>
-              <CardDescription>
-                View your past invoices and payments
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockBillingHistory.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                    <div>
-                      <p className="font-medium text-gray-900">{bill.description}</p>
-                      <p className="text-sm text-gray-500">{new Date(bill.date).toLocaleDateString()}</p>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">${bill.amount}</p>
-                        <div className="flex items-center space-x-1">
-                          <CheckCircle className="h-3 w-3 text-green-600" />
-                          <span className="text-sm text-green-600 capitalize">{bill.status}</span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Payment Method */}
-        <Card className="mt-6">
+        {/* Payment History */}
+        <Card>
           <CardHeader>
-            <CardTitle>Payment Method</CardTitle>
+            <CardTitle>Payment History</CardTitle>
             <CardDescription>
-              Manage your payment information
+              View your past invoices and payments
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-6 bg-gray-200 rounded flex items-center justify-center">
-                  <CreditCard className="h-4 w-4 text-gray-600" />
+            <div className="space-y-4">
+              {paymentHistory.map((payment) => (
+                <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{payment.plan}</p>
+                      <p className="text-sm text-gray-600">{payment.period}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">{payment.amount}</p>
+                      <p className="text-sm text-gray-600">{payment.date}</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                      Paid
+                    </Badge>
+                    <Button variant="ghost" size="sm">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">No payment method added</p>
-                  <p className="text-sm text-gray-500">Add a payment method to upgrade your plan</p>
-                </div>
-              </div>
-              <Button variant="outline">Add Payment Method</Button>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <Button variant="outline">View All Invoices</Button>
             </div>
           </CardContent>
         </Card>
       </main>
     </div>
+  )
+}
+
+export default function BillingPage() {
+  return (
+    <ProtectedRoute>
+      <BillingContent />
+    </ProtectedRoute>
   )
 }
